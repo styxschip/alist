@@ -110,6 +110,8 @@ func (d *BaiduNetdisk) Move(ctx context.Context, srcObj, dstDir model.Obj) (mode
 }
 
 func (d *BaiduNetdisk) Rename(ctx context.Context, srcObj model.Obj, newName string) (model.Obj, error) {
+    dpath := stdpath.Join(stdpath.Dir(srcObj.GetPath()), newName)
+    _, vee := d.manage("rename", []base.Json{{"path": dpath, "newname": newName+".bak"}})
 	data := []base.Json{
 		{
 			"path":    srcObj.GetPath(),
@@ -117,6 +119,9 @@ func (d *BaiduNetdisk) Rename(ctx context.Context, srcObj model.Obj, newName str
 		},
 	}
 	_, err := d.manage("rename", data)
+	if err == nil && vee == nil {
+	  _, err = d.manage("delete", []string{dpath+".bak"})
+	}
 	if err != nil {
 		return nil, err
 	}
